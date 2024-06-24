@@ -1,7 +1,7 @@
-// Arreglo para almacenar los productos
-const products = [];
+//Array para almacenar los productos, inicializado desde localStorage utilizando JSON
+const products = JSON.parse(localStorage.getItem('products')) || [];
 
-// Clase para crear objetos de producto
+// Constructor que va a crear cada producto que el usuario ingrese
 class Product {
     constructor(name, price) {
         this.name = name;
@@ -9,22 +9,24 @@ class Product {
     }
 }
 
-// Función para capturar entradas
-function promptProduct() {
-    const name = prompt("Ingrese el nombre del producto:");
-    const price = parseFloat(prompt("Ingrese el precio del producto:"));
+// Función para capturar entradas del formulario
+function getProductFromForm() {
+    const name = document.getElementById('product').value;
+    const price = parseFloat(document.getElementById('price').value);
     return new Product(name, price);
 }
 
-// Función para agregar un producto al arreglo
+// Función para agregar un producto al contructor
 function addProduct() {
-    const product = promptProduct();
+    const product = getProductFromForm();
     
-    // Este es el condicional que verifica que el nombre del producto no esté vacío, que el precio sea un número válido y mayor que cero.
+    // Requisitos if que deben cumplirse para poder ser agregados que devuelve un alert si no se cumplen
     if (product.name && !isNaN(product.price) && product.price > 0) {
         products.push(product);
         updateProductList();
         calculateTotalCost();
+        clearForm();
+        saveProductsToLocalStorage();
     } else {
         alert('Por favor, ingrese un producto válido y un precio positivo.');
     }
@@ -35,7 +37,7 @@ function updateProductList() {
     const productList = document.getElementById('product-list');
     productList.innerHTML = '';
 
-    products.forEach((product, index) => {
+    products.forEach((product) => {
         const listItem = document.createElement('li');
         listItem.textContent = `${product.name} - $${product.price.toFixed(2)}`;
         productList.appendChild(listItem);
@@ -46,7 +48,6 @@ function updateProductList() {
 function calculateTotalCost() {
     let totalCost = 0;
 
-    // Aqui usamos un ciclo "for" para calcular el costo total de los productos en la función "calculateTotalCost"
     for (const product of products) {
         totalCost += product.price;
     }
@@ -55,14 +56,42 @@ function calculateTotalCost() {
     totalCostElement.textContent = totalCost.toFixed(2);
 }
 
-// Variables y objetos necesarios
-const sampleProduct1 = new Product("Manzana", 1.5);
-const sampleProduct2 = new Product("Naranja", 2.0);
+// Función para limpiar el formulario después de agregar un producto
+function clearForm() {
+    document.getElementById('product-form').reset();
+}
 
-// Agregar productos de muestra para demostración
-products.push(sampleProduct1, sampleProduct2);
+// Función para guardar los productos en el local storage
+function saveProductsToLocalStorage() {
+    localStorage.setItem('products', JSON.stringify(products));
+}
+
+// Función para alternar el modo oscuro / modo claro
+function toggleDarkMode() {
+    document.body.classList.toggle('modo-obscuro');
+    const toggleButton = document.getElementById('toggle-dark-mode');
+    if (document.body.classList.contains('modo-obscuro')) {
+        toggleButton.textContent = 'Modo Claro';
+    } else {
+        toggleButton.textContent = 'Modo Oscuro';
+    }
+}
+
+// Función para borrar todos los productos del fomulario del local storage
+function clearFormAndStorage() {
+    localStorage.removeItem('products');
+    products.length = 0; // Vacía el arreglo de productos
+    updateProductList();
+    calculateTotalCost();
+    clearForm();
+}
+
 updateProductList();
 calculateTotalCost();
+
+
+
+
 
 
 
