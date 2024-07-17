@@ -1,7 +1,7 @@
-//Array para almacenar los productos, inicializado desde localStorage utilizando JSON
 const products = JSON.parse(localStorage.getItem('products')) || [];
+let availableProducts = [];
+let productsChart;
 
-// Constructor que va a crear cada producto que el usuario ingrese
 class Product {
     constructor(name, price) {
         this.name = name;
@@ -9,30 +9,49 @@ class Product {
     }
 }
 
-// Función para capturar entradas del formulario
-function getProductFromForm() {
-    const name = document.getElementById('product').value;
-    const price = parseFloat(document.getElementById('price').value);
-    return new Product(name, price);
+function populateProductSelect(products) {
+    const productSelect = document.getElementById('product-select');
+    productSelect.innerHTML = '';
+
+    products.forEach((product, index) => {
+        const option = document.createElement('option');
+        option.value = index;
+        option.textContent = `${product.name} - $${product.price.toFixed(2)}`;
+        productSelect.appendChild(option);
+    });
 }
 
-// Función para agregar un producto al contructor
+function getProductFromSelect() {
+    const selectedIndex = document.getElementById('product-select').value;
+    const selectedProduct = availableProducts[selectedIndex];
+    return new Product(selectedProduct.name, selectedProduct.price);
+}
+
 function addProduct() {
-    const product = getProductFromForm();
-    
-    // Requisitos if que deben cumplirse para poder ser agregados que devuelve un alert si no se cumplen
-    if (product.name && !isNaN(product.price) && product.price > 0) {
-        products.push(product);
-        updateProductList();
-        calculateTotalCost();
-        clearForm();
-        saveProductsToLocalStorage();
-    } else {
-        alert('Por favor, ingrese un producto válido y un precio positivo.');
-    }
+    const product = getProductFromSelect();
+
+    validateAndAddProduct(product)
+        .then(() => {
+            updateProductList();
+            calculateTotalCost();
+            saveProductsToLocalStorage();
+        })
+        .catch(error => {
+            alert(error.message);
+        });
 }
 
-// Función para actualizar la lista de productos en la interfaz
+function validateAndAddProduct(product) {
+    return new Promise((resolve, reject) => {
+        if (product.name && !isNaN(product.price) && product.price > 0) {
+            products.push(product);
+            resolve();
+        } else {
+            reject(new Error('Por favor, seleccione un producto válido.'));
+        }
+    });
+}
+
 function updateProductList() {
     const productList = document.getElementById('product-list');
     productList.innerHTML = '';
@@ -42,31 +61,23 @@ function updateProductList() {
         listItem.textContent = `${product.name} - $${product.price.toFixed(2)}`;
         productList.appendChild(listItem);
     });
+
+    generateChart();
 }
 
-// Función para calcular el costo total de los productos
 function calculateTotalCost() {
     let totalCost = 0;
-
     for (const product of products) {
         totalCost += product.price;
     }
-
     const totalCostElement = document.getElementById('total-cost');
     totalCostElement.textContent = totalCost.toFixed(2);
 }
 
-// Función para limpiar el formulario después de agregar un producto
-function clearForm() {
-    document.getElementById('product-form').reset();
-}
-
-// Función para guardar los productos en el local storage
 function saveProductsToLocalStorage() {
     localStorage.setItem('products', JSON.stringify(products));
 }
 
-// Función para alternar el modo oscuro / modo claro
 function toggleDarkMode() {
     document.body.classList.toggle('modo-obscuro');
     const toggleButton = document.getElementById('toggle-dark-mode');
@@ -77,17 +88,60 @@ function toggleDarkMode() {
     }
 }
 
-// Función para borrar todos los productos del fomulario del local storage
 function clearFormAndStorage() {
     localStorage.removeItem('products');
-    products.length = 0; // Vacía el arreglo de productos
+    products.length = 0;
     updateProductList();
     calculateTotalCost();
-    clearForm();
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    fetch('products.json')
+        .then(response => response.json())
+        .then(data => {
+            availableProducts = data;
+            populateProductSelect(availableProducts);
+        })
+        .catch(error => console.error('Error al cargar el archivo JSON:', error));
+});
+
+function generateChart() {
+    const ctx = document.getElementById('productsChart').getContext('2d');
+    
+    if (productsChart) {
+        productsChart.destroy();
+    }
+
+    const chartData = products.map(product => product.price);
+    const chartLabels = products.map(product => product.name);
+
+    productsChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: chartLabels,
+            datasets: [{
+                label: 'Precios de Productos',
+                data: chartData,
+                backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                borderColor: 'rgba(75, 192, 192, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
 }
 
 updateProductList();
 calculateTotalCost();
+
+
+
 
 
 

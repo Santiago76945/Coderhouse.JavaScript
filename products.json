@@ -1,0 +1,17 @@
+[
+    {"name": "Manzana", "price": 100},
+    {"name": "Banana", "price": 200},
+    {"name": "Mango", "price": 150},
+    {"name": "Pera", "price": 175},
+    {"name": "Naranja", "price": 180},
+    {"name": "Uvas", "price": 250},
+    {"name": "Sandía", "price": 300},
+    {"name": "Melón", "price": 275},
+    {"name": "Piña", "price": 350},
+    {"name": "Durazno", "price": 220},
+    {"name": "Cereza", "price": 400},
+    {"name": "Fresa", "price": 120},
+    {"name": "Kiwi", "price": 130},
+    {"name": "Papaya", "price": 160}
+]
+
